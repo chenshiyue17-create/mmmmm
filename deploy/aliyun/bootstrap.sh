@@ -34,6 +34,24 @@ install_docker_if_needed() {
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     return
   fi
+
+  if [ -f /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+  fi
+
+  if [ "${ID:-}" = "alinux" ] || [ "${ID_LIKE:-}" = "rhel fedora" ]; then
+    if command -v yum >/dev/null 2>&1; then
+      $SUDO yum install -y yum-utils device-mapper-persistent-data lvm2
+      $SUDO yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+      $SUDO sed -i 's/$releasever/8/g' /etc/yum.repos.d/docker-ce.repo || true
+      $SUDO yum makecache -y
+      $SUDO yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      $SUDO systemctl enable --now docker
+      return
+    fi
+  fi
+
   curl -fsSL https://get.docker.com | $SUDO sh
   $SUDO systemctl enable --now docker
 }
@@ -45,7 +63,9 @@ clone_or_update_repo() {
     git -C "$APP_DIR" pull --ff-only origin "$BRANCH"
   else
     $SUDO mkdir -p "$(dirname "$APP_DIR")"
-    $SUDO chown "$USER":"$USER" "$(dirname "$APP_DIR")"
+    local current_user
+    current_user="${USER:-$(id -un)}"
+    $SUDO chown "$current_user":"$current_user" "$(dirname "$APP_DIR")"
     git clone --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
   fi
 }
