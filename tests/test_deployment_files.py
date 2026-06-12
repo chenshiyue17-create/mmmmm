@@ -408,6 +408,39 @@ def test_hybrid_server_local_split_keeps_trading_independent() -> None:
     assert ".env" not in sync.split("FILES=", 1)[1].split(")", 1)[0]
 
 
+def test_import_research_flow_reuses_existing_output_when_source_missing(tmp_path: Path) -> None:
+    import subprocess
+
+    existing = tmp_path / "datugou_flow.json"
+    existing.write_text(
+        json.dumps(
+            {
+                "schema_version": "strategy-flow/v1",
+                "name": "datugou_profit_flow",
+                "version": "server-cache",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            "python3",
+            "scripts/import-research-flow.py",
+            "--flow",
+            str(tmp_path / "missing.yaml"),
+            "--output",
+            str(existing),
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "reusing existing" in result.stdout
+
+
 def test_local_auto_login_file_is_generated() -> None:
     import json
     import subprocess

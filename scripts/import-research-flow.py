@@ -5,8 +5,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RESEARCH_FLOW = Path("/Users/cc/Documents/量化/strategies/datugou_profit_flow.yaml")
@@ -21,6 +19,8 @@ def _condition_value(flow: dict[str, Any], left: str, right: str) -> float:
 
 
 def convert(flow_path: Path) -> dict[str, Any]:
+    import yaml
+
     raw = yaml.safe_load(flow_path.read_text(encoding="utf-8"))
     flow = raw.get("strategy_flow")
     if not isinstance(flow, dict):
@@ -63,7 +63,12 @@ def main() -> int:
 
     flow_path = Path(args.flow)
     if not flow_path.exists():
-        raise FileNotFoundError(f"Research strategy flow not found: {flow_path}")
+        output = Path(args.output)
+        if output.exists():
+            json.loads(output.read_text(encoding="utf-8"))
+            print(f"Research strategy flow not found, reusing existing {output}")
+            return 0
+        raise FileNotFoundError(f"Research strategy flow not found and no existing output is available: {flow_path}")
     params = convert(flow_path)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
