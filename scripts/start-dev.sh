@@ -74,6 +74,8 @@ if [ ! -f .env ]; then
 fi
 
 mkdir -p logs user_data/logs output
+chmod a+rwx user_data logs user_data/logs output
+chmod -R a+rwX logs user_data/logs output
 find user_data/strategies -name '._*' -type f -delete
 "$PYTHON_BIN" scripts/import-research-flow.py >/dev/null
 "$PYTHON_BIN" scripts/generate-local-login.py >/dev/null
