@@ -20,6 +20,8 @@ See `docs/RESTRUCTURE_DECISION.md` for the current two-project architecture: the
 
 See `docs/AI_ML_TRADING_FRAMEWORK.md` for the full AI workflow mapping: labels, factors, model tasks, LightGBM/Qlib, LSTM, Transformer, pred signals, deployment gate, and strategy hook.
 
+See `docs/HYBRID_SERVER_LOCAL_ARCHITECTURE.md` for the split runtime model: server executes trades 24/7, local machine computes data/research and optionally syncs bounded strategy files.
+
 ## Requirements
 
 ### macOS Local
@@ -35,6 +37,7 @@ See `docs/AI_ML_TRADING_FRAMEWORK.md` for the full AI workflow mapping: labels, 
 - Docker Engine and Docker Compose v2. `deploy/aliyun/bootstrap.sh` can install them.
 - `git`, `screen`, `curl`, `lsof`, and `python3`.
 - Server-local `.env`; never commit exchange API keys.
+- Server is the trading execution node. Local research is optional and must not be required for 24h trading.
 
 ## Quick Start
 
@@ -92,6 +95,23 @@ http://localhost:8080/analysis.html
 ```
 
 Full server notes: `deploy/aliyun/README.md`.
+
+## Server Trades, Local Computes
+
+For 24h trading, deploy the execution runtime on Aliyun and keep local computation separate:
+
+- Server: Freqtrade, OKX API, auto-watch, stability guardian, systemd.
+- Local: market data, ML/Qlib/Gemini research, parameter generation.
+- Sync direction: local -> server, small bounded strategy files only.
+- No dependency: server keeps trading when the local computer is off.
+
+Sync local research outputs to the server:
+
+```bash
+SERVER_HOST=YOUR_SERVER_IP SERVER_USER=root scripts/sync-research-to-server.sh
+```
+
+By default this does not restart server trading. Use `RESTART_AFTER_SYNC=1` only when intentionally reloading strategy/config.
 
 ## Commands
 

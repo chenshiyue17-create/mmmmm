@@ -96,3 +96,25 @@ sudo systemctl restart freqtrade-deploy
 - Do not expose port `8080` publicly in the Aliyun security group.
 - Keep OKX withdrawal permission disabled.
 - Start with OKX sandbox before any live review.
+
+## Server Trades, Local Computes
+
+The Aliyun server is the execution node. It must keep trading even if your local Mac is offline.
+
+Server defaults:
+
+```text
+GEMINI_OPTIMIZER_ENABLED=0
+GEMINI_AUTOMATION_ENABLED=0
+ML_SIGNAL_FILTER_ENABLED=0
+GUARDIAN_RUNTIME_HOURS=0
+```
+
+Local machine can run research/training and optionally sync bounded strategy files:
+
+```bash
+cd /Volumes/NINJAV/Codex_Projects/freqtrade-deploy
+SERVER_HOST=YOUR_SERVER_IP SERVER_USER=root scripts/sync-research-to-server.sh
+```
+
+This does not sync `.env`, OKX keys, logs, output datasets, or SQLite databases. Details: `docs/HYBRID_SERVER_LOCAL_ARCHITECTURE.md`.

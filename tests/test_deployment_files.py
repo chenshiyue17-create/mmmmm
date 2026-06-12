@@ -79,8 +79,10 @@ def test_required_files_exist() -> None:
         "deploy/aliyun/bootstrap.sh",
         "deploy/aliyun/install-systemd.sh",
         "deploy/aliyun/README.md",
+        "docs/HYBRID_SERVER_LOCAL_ARCHITECTURE.md",
         ".env.server.example",
         ".dockerignore",
+        "scripts/sync-research-to-server.sh",
     ]
     for rel in required:
         assert (ROOT / rel).exists(), rel
@@ -382,10 +384,28 @@ def test_aliyun_pull_deployment_is_server_safe() -> None:
     assert "ExecStart=/usr/bin/env bash" in systemd
     assert "ssh -L 8080:127.0.0.1:8080" in docs
     assert "OKX_SANDBOX_MODE=1" in env
+    assert "GEMINI_OPTIMIZER_ENABLED=0" in env
+    assert "GEMINI_AUTOMATION_ENABLED=0" in env
     assert "!.env.server.example" in ignore
     assert "output/" in dockerignore
     assert "profiles:" in compose
     assert "research" in compose
+
+
+def test_hybrid_server_local_split_keeps_trading_independent() -> None:
+    docs = (ROOT / "docs/HYBRID_SERVER_LOCAL_ARCHITECTURE.md").read_text()
+    sync = (ROOT / "scripts/sync-research-to-server.sh").read_text()
+    server_env = (ROOT / ".env.server.example").read_text()
+
+    assert "服务器只负责 24 小时交易执行" in docs
+    assert "本地断网、关机、重启，不影响服务器继续交易" in docs
+    assert "GEMINI_OPTIMIZER_ENABLED=0" in server_env
+    assert "GEMINI_AUTOMATION_ENABLED=0" in server_env
+    assert "ML_SIGNAL_FILTER_ENABLED=0" in server_env
+    assert "security-leak-check.sh" in sync
+    assert "user_data/datugou_flow.autopilot.json" in sync
+    assert "secrets_synced\": false" in sync
+    assert ".env" not in sync.split("FILES=", 1)[1].split(")", 1)[0]
 
 
 def test_local_auto_login_file_is_generated() -> None:

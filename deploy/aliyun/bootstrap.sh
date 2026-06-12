@@ -64,6 +64,7 @@ Edit it on the server before starting:
 
 Fill FT_API_PASSWORD, FT_JWT_SECRET_KEY, FT_WS_TOKEN, OKX_KEY, OKX_SECRET, OKX_PASSWORD.
 Keep OKX_SANDBOX_MODE=1 for the first server run.
+Server trading is independent of the local machine. Local research sync is optional.
 MSG
     exit 2
   fi
