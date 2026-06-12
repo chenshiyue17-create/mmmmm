@@ -1,0 +1,21 @@
+{
+  "exchange": {
+    "name": "binance",
+    "key": "${BINANCE_KEY}",
+    "secret": "${BINANCE_SECRET}",
+    "ccxt_config": {
+      "enableRateLimit": true
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true
+    },
+    "enable_ws": false,
+    "pair_whitelist": [
+      "BTC/USDT",
+      "ETH/USDT"
+    ],
+    "pair_blacklist": [
+      "BNB/.*"
+    ]
+  }
+}

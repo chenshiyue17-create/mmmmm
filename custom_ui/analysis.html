@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Freqtrade 分析工作台</title>
+  <link rel="stylesheet" href="/assets/analysis.css?v=okx-sandbox-20260612">
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">FT</div>
+      <div>
+        <strong>分析工作台</strong>
+        <span>OKX 模拟盘自动交易</span>
+      </div>
+    </div>
+    <nav class="nav-group" aria-label="主导航">
+      <a class="nav-item active" href="/analysis.html">分析</a>
+      <a class="nav-item" href="/dashboard">仪表盘</a>
+      <a class="nav-item" href="/balance">余额</a>
+      <a class="nav-item" href="/pairlist">动态筛币</a>
+    </nav>
+    <nav class="nav-group muted" aria-label="系统">
+      <span class="nav-item disabled">自动盯盘运行中</span>
+      <span class="nav-item disabled">Gemini 优化运行中</span>
+      <span class="nav-item disabled">稳定守护运行中</span>
+    </nav>
+    <div class="build-box">
+      <span>版本</span>
+      <strong id="build-version">加载中</strong>
+      <span>同步</span>
+      <strong id="sync-time">未同步</strong>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>量化运行分析</h1>
+        <p>OKX 模拟盘、动态筛币、自动盯盘和策略优化状态集中检查。</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refresh-btn" class="btn primary" type="button">刷新</button>
+      </div>
+    </header>
+
+    <section class="login-panel">
+      <div class="login-card">
+        <h2>虚拟盘自动交易运行中</h2>
+        <p>交易由 Freqtrade 后台执行，API 密钥只从 Keychain 注入；本页负责监控，不保存密钥。</p>
+      </div>
+    </section>
+
+    <section class="filters" aria-label="筛选">
+      <label>
+        类型
+        <select id="filter-type">
+          <option value="all">全部数据</option>
+          <option value="capital">资金</option>
+          <option value="trade">交易</option>
+          <option value="risk">风险</option>
+        </select>
+      </label>
+      <label>
+        状态
+        <select id="filter-status">
+          <option value="all">全部状态</option>
+          <option value="dry">本地 dry-run</option>
+          <option value="live">OKX 模拟盘</option>
+          <option value="empty">暂无持仓</option>
+        </select>
+      </label>
+      <label>
+        时间
+        <select id="filter-range">
+          <option value="7">近 7 天</option>
+          <option value="14">近 14 天</option>
+          <option value="30">近 30 天</option>
+        </select>
+      </label>
+    </section>
+
+    <section id="state-banner" class="state-banner" role="status">正在加载分析数据...</section>
+
+    <section class="metric-grid" aria-label="关键指标">
+      <article class="metric-card">
+        <span>运行模式</span>
+        <strong id="metric-mode">-</strong>
+        <small id="metric-strategy">策略 -</small>
+      </article>
+      <article class="metric-card">
+        <span>账户资金</span>
+        <strong id="metric-balance">-</strong>
+        <small id="metric-balance-note">折合 -</small>
+      </article>
+      <article class="metric-card">
+        <span>总收益</span>
+        <strong id="metric-profit">-</strong>
+        <small id="metric-profit-rate">0.000%</small>
+      </article>
+      <article class="metric-card">
+        <span>持仓容量</span>
+        <strong id="metric-slots">-</strong>
+        <small id="metric-stake">单笔 -</small>
+      </article>
+    </section>
+
+    <section class="main-grid">
+      <div class="analysis-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>收益时间轴</h2>
+            <span id="daily-summary">-</span>
+          </div>
+          <div id="daily-bars" class="daily-bars" aria-label="收益柱状图"></div>
+        </section>
+
+        <section class="panel ai-panel">
+          <div class="panel-head">
+            <h2>AI 信号研究</h2>
+            <span id="ai-gate-state">-</span>
+          </div>
+          <div class="ai-summary" aria-label="AI 模型摘要">
+            <article class="ai-card">
+              <span>准入模式</span>
+              <strong id="ai-mode">-</strong>
+              <small id="ai-updated">更新 -</small>
+            </article>
+            <article class="ai-card">
+              <span>3 个月样本</span>
+              <strong id="ai-dataset">-</strong>
+              <small id="ai-label">标签 -</small>
+            </article>
+            <article class="ai-card">
+              <span>Qlib IC</span>
+              <strong id="ai-qlib-ic">-</strong>
+              <small>预测相关性</small>
+            </article>
+            <article class="ai-card">
+              <span>Qlib Rank IC</span>
+              <strong id="ai-qlib-rank-ic">-</strong>
+              <small>截面排序相关性</small>
+            </article>
+          </div>
+          <div class="ai-workspace">
+            <div>
+              <div class="subhead">
+                <strong>研究候选</strong>
+                <span>仅用于观察，不自动下单</span>
+              </div>
+              <div id="ai-candidates" class="ai-candidates"></div>
+            </div>
+            <div>
+              <div class="subhead">
+                <strong>准入检查</strong>
+                <span>未通过项会阻止进入交易层</span>
+              </div>
+              <div id="ai-failed-checks" class="check-list"></div>
+            </div>
+          </div>
+          <div class="sequence-workspace">
+            <div class="subhead">
+              <strong>时序模型层</strong>
+              <span id="sequence-status">等待训练</span>
+            </div>
+            <div class="sequence-grid">
+              <article>
+                <span>窗口</span>
+                <strong id="sequence-lookback">-</strong>
+              </article>
+              <article>
+                <span>序列样本</span>
+                <strong id="sequence-rows">-</strong>
+              </article>
+              <article>
+                <span>LSTM</span>
+                <strong id="sequence-lstm">-</strong>
+              </article>
+              <article>
+                <span>Transformer</span>
+                <strong id="sequence-transformer">-</strong>
+              </article>
+            </div>
+            <div id="sequence-candidates" class="ai-candidates"></div>
+          </div>
+          <div class="deep-workspace">
+            <div class="subhead">
+              <strong>LSTM / Transformer</strong>
+              <span id="deep-status">等待训练</span>
+            </div>
+            <div class="sequence-grid">
+              <article>
+                <span>PyTorch</span>
+                <strong id="deep-torch">-</strong>
+              </article>
+              <article>
+                <span>LSTM Corr</span>
+                <strong id="deep-lstm-corr">-</strong>
+              </article>
+              <article>
+                <span>Transformer Corr</span>
+                <strong id="deep-transformer-corr">-</strong>
+              </article>
+              <article>
+                <span>Ensemble Rank IC</span>
+                <strong id="deep-ensemble-rank">-</strong>
+              </article>
+            </div>
+            <div id="deep-candidates" class="ai-candidates"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>持仓检查</h2>
+            <span id="open-trade-count">-</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>交易对</th>
+                  <th>投入</th>
+                  <th>开仓价</th>
+                  <th>当前收益</th>
+                  <th>开仓时间</th>
+                </tr>
+              </thead>
+              <tbody id="open-trades-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel autopilot-panel">
+          <div class="panel-head">
+            <h2>Gemini 自动优化</h2>
+            <span id="autopilot-status">-</span>
+          </div>
+          <div class="sequence-grid">
+            <article>
+              <span>自动应用</span>
+              <strong id="autopilot-enabled">-</strong>
+            </article>
+            <article>
+              <span>本轮动作</span>
+              <strong id="autopilot-actions">-</strong>
+            </article>
+            <article>
+              <span>最近应用</span>
+              <strong id="autopilot-applied-at">-</strong>
+            </article>
+            <article>
+              <span>置信度</span>
+              <strong id="autopilot-confidence">-</strong>
+            </article>
+          </div>
+          <div class="ai-workspace">
+            <div>
+              <div class="subhead">
+                <strong>自动覆盖参数</strong>
+                <span>只改策略参数覆盖层</span>
+              </div>
+              <div id="autopilot-params" class="check-list"></div>
+            </div>
+            <div>
+              <div class="subhead">
+                <strong>任务队列</strong>
+                <span>后台持续执行</span>
+              </div>
+              <div id="autopilot-backlog" class="check-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>交易对表现</h2>
+            <span id="performance-count">-</span>
+          </div>
+          <div id="performance-list" class="performance-list"></div>
+        </section>
+      </div>
+
+      <aside class="inspector">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>风险检查器</h2>
+            <span id="risk-score">-</span>
+          </div>
+          <ul id="risk-list" class="risk-list"></ul>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>交易对池</h2>
+            <span id="pair-count">-</span>
+          </div>
+          <div id="pair-list" class="pair-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>策略参数</h2>
+            <span>只读</span>
+          </div>
+          <dl id="config-list" class="config-list"></dl>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/assets/analysis.js?v=okx-sandbox-20260612"></script>
+</body>
+
+</html>

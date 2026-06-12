@@ -1,0 +1,15 @@
+{
+  "source": "/Users/cc/Documents/量化/strategies/datugou_profit_flow.yaml",
+  "schema_version": "strategy-flow/v1",
+  "name": "datugou_profit_flow",
+  "version": "2026-06-11.1",
+  "min_rows": 80,
+  "breakout_lookback": 24,
+  "volume_window": 24,
+  "momentum_window": 6,
+  "min_volume_ratio": 1.6,
+  "min_momentum_pct": 2.5,
+  "stop_loss_pct": 7.0,
+  "take_profit_pct": 30.0,
+  "trailing_stop_pct": 10.0
+}

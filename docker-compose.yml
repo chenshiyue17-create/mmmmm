@@ -1,0 +1,85 @@
+services:
+  deep-research:
+    profiles:
+      - research
+    build:
+      context: .
+      dockerfile: docker/deep-research.Dockerfile
+    image: freqtrade-deploy-deep-research:local
+    container_name: deep-research
+    working_dir: /workspace
+    environment:
+      FT_PROJECT_ROOT: /workspace
+      OMP_NUM_THREADS: ${DEEP_RESEARCH_THREADS:-2}
+      MKL_NUM_THREADS: ${DEEP_RESEARCH_THREADS:-2}
+    volumes:
+      - ./scripts:/workspace/scripts:ro
+      - ./output:/workspace/output
+      - ./logs:/workspace/logs
+    command:
+      - python
+      - -c
+      - "import torch; print('deep-research: ready', torch.__version__)"
+
+  qlib-research:
+    profiles:
+      - research
+    build:
+      context: .
+      dockerfile: docker/qlib-research.Dockerfile
+    image: freqtrade-deploy-qlib-research:local
+    container_name: qlib-research
+    working_dir: /workspace
+    environment:
+      QLIB_RUNTIME_ROOT: /workspace
+    volumes:
+      - ./vendor:/workspace/vendor:ro
+      - ./scripts:/workspace/scripts:ro
+      - ./output:/workspace/output
+      - ./logs:/workspace/logs
+    command:
+      - python
+      - -c
+      - "import qlib, lightgbm; import qlib.data._libs.rolling; print('qlib-research: ready')"
+
+  freqtrade:
+    image: ${FREQTRADE_IMAGE:-freqtradeorg/freqtrade:stable}
+    restart: unless-stopped
+    container_name: freqtrade-dryrun
+    env_file:
+      - .env
+    environment:
+      FREQTRADE__API_SERVER__USERNAME: ${FT_API_USERNAME}
+      FREQTRADE__API_SERVER__PASSWORD: ${FT_API_PASSWORD}
+      FREQTRADE__API_SERVER__JWT_SECRET_KEY: ${FT_JWT_SECRET_KEY}
+      FREQTRADE__API_SERVER__WS_TOKEN: ${FT_WS_TOKEN}
+      FREQTRADE__EXCHANGE__KEY: ${OKX_KEY:-${BINANCE_KEY:-}}
+      FREQTRADE__EXCHANGE__SECRET: ${OKX_SECRET:-${BINANCE_SECRET:-}}
+      FREQTRADE__EXCHANGE__PASSWORD: ${OKX_PASSWORD:-}
+      OKX_SANDBOX_MODE: ${OKX_SANDBOX_MODE:-0}
+      ML_SIGNAL_FILTER_ENABLED: ${ML_SIGNAL_FILTER_ENABLED:-0}
+      ML_SIGNAL_PATH: /freqtrade/output/ml_models/latest_signals.json
+      PYTHONPATH: /freqtrade/runtime
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./scripts:/freqtrade/scripts:ro
+      - ./runtime:/freqtrade/runtime:ro
+      - ./output:/freqtrade/output
+      - ./custom_ui/index.html:/freqtrade/freqtrade/rpc/api_server/ui/installed/index.html:ro
+      - ./custom_ui/analysis.html:/freqtrade/freqtrade/rpc/api_server/ui/installed/analysis.html:ro
+      - ./custom_ui/analysis.css:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/analysis.css:ro
+      - ./custom_ui/analysis.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/analysis.js:ro
+      - ./custom_ui/analysis-data.json:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/analysis-data.json:ro
+      - ./custom_ui/local-login.json:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/local-login.json:ro
+      - ./custom_ui/freqtrade-zh.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/freqtrade-zh.js:ro
+      - ./custom_ui/okx-sandbox-balance.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/okx-sandbox-balance.js:ro
+      - ./output/okx-sandbox-api-check.json:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/okx-sandbox-api-check.json:ro
+      - ./custom_ui/BotBalance-CfdHVrDj.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/BotBalance-CfdHVrDj.js:ro
+    ports:
+      - "127.0.0.1:${FREQTRADE_BACKEND_PORT:-18080}:8080"
+    command:
+      - ${FREQTRADE_RUN_MODE:-webserver}
+      - --logfile
+      - /freqtrade/user_data/logs/freqtrade.log
+      - --config
+      - /freqtrade/user_data/config.json

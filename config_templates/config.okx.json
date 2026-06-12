@@ -1,0 +1,37 @@
+{
+  "exchange": {
+    "name": "okx",
+    "key": "${OKX_KEY}",
+    "secret": "${OKX_SECRET}",
+    "password": "${OKX_PASSWORD}",
+    "ccxt_config": {
+      "enableRateLimit": true
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true
+    },
+    "pair_whitelist": [
+      ".*/USDT"
+    ],
+    "pair_blacklist": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "OKB/USDT",
+      "BNB/USDT",
+      "SOL/USDT",
+      "XRP/USDT",
+      "ADA/USDT",
+      "TRX/USDT",
+      "USDC/USDT",
+      "EUR/USDT",
+      ".*(UP|DOWN|BULL|BEAR|3L|3S|5L|5S)/USDT"
+    ],
+    "dynamic_pairlist": {
+      "method": "PercentChangePairList",
+      "number_assets": 30,
+      "refresh_period": 900,
+      "lookback_timeframe": "5m",
+      "lookback_period": 12
+    }
+  }
+}

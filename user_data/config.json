@@ -1,0 +1,112 @@
+{
+  "$schema": "https://schema.freqtrade.io/schema.json",
+  "max_open_trades": 3,
+  "stake_currency": "USDT",
+  "stake_amount": 100,
+  "tradable_balance_ratio": 0.99,
+  "fiat_display_currency": "USD",
+  "dry_run": false,
+  "dry_run_wallet": 1000,
+  "cancel_open_orders_on_exit": false,
+  "trading_mode": "spot",
+  "margin_mode": "",
+  "timeframe": "1h",
+  "strategy": "DatugouBreakoutStrategy",
+  "unfilledtimeout": {
+    "entry": 10,
+    "exit": 10,
+    "exit_timeout_count": 0,
+    "unit": "minutes"
+  },
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1,
+    "price_last_balance": 0.0,
+    "check_depth_of_market": {
+      "enabled": false,
+      "bids_to_ask_delta": 1
+    }
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exchange": {
+    "name": "okx",
+    "key": "",
+    "secret": "",
+    "password": "",
+    "ccxt_config": {
+      "enableRateLimit": true
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true
+    },
+    "pair_whitelist": [
+      ".*/USDT"
+    ],
+    "pair_blacklist": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "OKB/USDT",
+      "BNB/USDT",
+      "SOL/USDT",
+      "XRP/USDT",
+      "ADA/USDT",
+      "TRX/USDT",
+      "USDC/USDT",
+      "EUR/USDT",
+      ".*(UP|DOWN|BULL|BEAR|3L|3S|5L|5S)/USDT"
+    ],
+    "enable_ws": false
+  },
+  "pairlists": [
+    {
+      "method": "PercentChangePairList",
+      "number_assets": 30,
+      "min_value": 2,
+      "max_value": 80,
+      "refresh_period": 900,
+      "lookback_timeframe": "5m",
+      "lookback_period": 12,
+      "sort_direction": "desc"
+    },
+    {
+      "method": "SpreadFilter",
+      "max_spread_ratio": 0.01
+    },
+    {
+      "method": "PriceFilter",
+      "low_price_ratio": 0.05
+    },
+    {
+      "method": "ShuffleFilter",
+      "shuffle_frequency": "candle"
+    }
+  ],
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "api_server": {
+    "enabled": true,
+    "listen_ip_address": "0.0.0.0",
+    "listen_port": 8080,
+    "verbosity": "error",
+    "enable_openapi": false,
+    "jwt_secret_key": "change-this-jwt-secret-at-least-32-chars",
+    "ws_token": "change-this-websocket-token",
+    "CORS_origins": [],
+    "username": "freqtrade",
+    "password": "change-this-password"
+  },
+  "bot_name": "freqtrade-okx-sandbox",
+  "initial_state": "running",
+  "force_entry_enable": true,
+  "internals": {
+    "process_throttle_secs": 5
+  }
+}
