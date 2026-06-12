@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SESSION_NAME="freqtrade-stability-guardian"
+PYTHON_BIN="${PYTHON_BIN:-$(command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)}"
 
 cd "$ROOT_DIR"
 
@@ -18,9 +19,9 @@ if command -v caffeinate >/dev/null 2>&1; then
   done || true
   screen -dmS freqtrade-caffeinate bash -lc "caffeinate -dimsu"
 fi
-screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && GUARDIAN_RUNTIME_HOURS='${GUARDIAN_RUNTIME_HOURS}' python3 scripts/stability-guardian.py"
+screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && GUARDIAN_RUNTIME_HOURS='${GUARDIAN_RUNTIME_HOURS}' '$PYTHON_BIN' scripts/stability-guardian.py"
 sleep 1
-GUARDIAN_ONCE=1 python3 scripts/stability-guardian.py >/dev/null
+GUARDIAN_ONCE=1 "$PYTHON_BIN" scripts/stability-guardian.py >/dev/null
 echo "stability-guardian: running (${SESSION_NAME})"
 echo "status: output/stability-guardian-status.json"
 echo "events: output/stability-guardian-events.jsonl"

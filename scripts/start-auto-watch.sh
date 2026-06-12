@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SESSION_NAME="freqtrade-auto-watch"
+PYTHON_BIN="${PYTHON_BIN:-$(command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)}"
 
 cd "$ROOT_DIR"
 
@@ -18,9 +19,9 @@ screen -list 2>/dev/null | awk -v name="$SESSION_NAME" '$1 ~ "^[0-9]+\\." name "
 done || true
 
 mkdir -p logs output
-screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && python3 scripts/auto-watch.py"
+screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && '$PYTHON_BIN' scripts/auto-watch.py"
 sleep 1
-AUTO_WATCH_ONCE=1 python3 scripts/auto-watch.py >/dev/null
+AUTO_WATCH_ONCE=1 "$PYTHON_BIN" scripts/auto-watch.py >/dev/null
 echo "auto-watch: running (${SESSION_NAME})"
 echo "status: output/auto-watch-status.json"
 echo "log: logs/auto-watch.log"

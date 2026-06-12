@@ -7,6 +7,8 @@ MOUNT_ROOT="/Volumes/NINJAV"
 
 cd "$ROOT_DIR"
 
+PYTHON_BIN="${PYTHON_BIN:-$(command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)}"
+
 if [ -f .env ]; then
   set -a
   # shellcheck disable=SC1091
@@ -73,9 +75,9 @@ fi
 
 mkdir -p logs user_data/logs output
 find user_data/strategies -name '._*' -type f -delete
-python3 scripts/import-research-flow.py >/dev/null
-python3 scripts/generate-local-login.py >/dev/null
-python3 scripts/generate-analysis-data.py >/dev/null
+"$PYTHON_BIN" scripts/import-research-flow.py >/dev/null
+"$PYTHON_BIN" scripts/generate-local-login.py >/dev/null
+"$PYTHON_BIN" scripts/generate-analysis-data.py >/dev/null
 
 SCREEN_OUTPUT="$(screen -list 2>/dev/null || true)"
 if grep -q "[.]${SESSION_NAME}[[:space:]]" <<< "$SCREEN_OUTPUT"; then
@@ -146,7 +148,7 @@ if [ "$API_READY" != "1" ]; then
   exit 1
 fi
 if [ "$READONLY_PROXY_ENABLED" = "1" ]; then
-  screen -dmS "$PROXY_SESSION" bash -lc "cd '$ROOT_DIR' && FREQTRADE_UI_PORT='$PORT' FREQTRADE_BACKEND_PORT='$BACKEND_PORT' python3 scripts/read_only_proxy.py 2>&1 | tee -a logs/read-only-proxy.log"
+  screen -dmS "$PROXY_SESSION" bash -lc "cd '$ROOT_DIR' && FREQTRADE_UI_PORT='$PORT' FREQTRADE_BACKEND_PORT='$BACKEND_PORT' '$PYTHON_BIN' scripts/read_only_proxy.py 2>&1 | tee -a logs/read-only-proxy.log"
   for _ in $(seq 1 30); do
     if curl -fsS "http://localhost:${PORT}/analysis.html" >/dev/null 2>&1; then
       break
@@ -154,10 +156,10 @@ if [ "$READONLY_PROXY_ENABLED" = "1" ]; then
     sleep 1
   done
 fi
-screen -dmS "$WATCH_SESSION" bash -lc "cd '$ROOT_DIR' && AUTO_WATCH_INTERVAL_SECONDS='${AUTO_WATCH_INTERVAL_SECONDS:-30}' python3 scripts/auto-watch.py"
+screen -dmS "$WATCH_SESSION" bash -lc "cd '$ROOT_DIR' && AUTO_WATCH_INTERVAL_SECONDS='${AUTO_WATCH_INTERVAL_SECONDS:-30}' '$PYTHON_BIN' scripts/auto-watch.py"
 WATCH_READY=0
 for _ in $(seq 1 90); do
-  if AUTO_WATCH_ONCE=1 python3 scripts/auto-watch.py >/dev/null 2>&1; then
+  if AUTO_WATCH_ONCE=1 "$PYTHON_BIN" scripts/auto-watch.py >/dev/null 2>&1; then
     WATCH_READY=1
     break
   fi

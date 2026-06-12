@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SESSION_NAME="freqtrade-gemini-optimizer"
+PYTHON_BIN="${PYTHON_BIN:-$(command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)}"
 
 cd "$ROOT_DIR"
 
@@ -11,7 +12,7 @@ screen -list 2>/dev/null | awk -v name="$SESSION_NAME" '$1 ~ "^[0-9]+\\." name "
 done || true
 
 mkdir -p logs output
-screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && python3 scripts/gemini-optimizer.py"
+screen -dmS "$SESSION_NAME" bash -lc "cd '$ROOT_DIR' && '$PYTHON_BIN' scripts/gemini-optimizer.py"
 echo "gemini-optimizer: running (${SESSION_NAME})"
 echo "status: output/gemini-optimizer-status.json"
 echo "report: output/gemini-optimizer-report.md"
