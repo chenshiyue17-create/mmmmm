@@ -173,13 +173,13 @@ if [ "$WATCH_READY" != "1" ]; then
   exit 1
 fi
 if [ "${GEMINI_OPTIMIZER_ENABLED:-1}" = "1" ]; then
-  scripts/start-gemini-optimizer.sh >/dev/null
+  bash scripts/start-gemini-optimizer.sh >/dev/null
 fi
 if command -v caffeinate >/dev/null 2>&1; then
   screen -dmS "$CAFFEINATE_SESSION" bash -lc "caffeinate -dimsu"
 fi
 if [ "${STABILITY_GUARDIAN_ENABLED:-1}" = "1" ]; then
   export GUARDIAN_RUNTIME_HOURS="${GUARDIAN_RUNTIME_HOURS:-0}"
-  scripts/start-stability-guardian.sh >/dev/null
+  bash scripts/start-stability-guardian.sh >/dev/null
 fi
-scripts/dev-status.sh
+bash scripts/dev-status.sh
